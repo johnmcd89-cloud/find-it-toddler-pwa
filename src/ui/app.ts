@@ -17,6 +17,10 @@ export class FindItApp {
   private holdTimer: number | null = null;
   private holdStart = 0;
   private holdAnim: number | null = null;
+  private exitHoldTimer: number | null = null;
+  private exitHoldStart = 0;
+  private exitHoldAnim: number | null = null;
+  private isFullscreen = false;
 
   constructor(root: HTMLElement, items: Item[]) {
     this.root = root;
@@ -29,13 +33,16 @@ export class FindItApp {
     const closeSettingsBtn = this.el<HTMLButtonElement>('#closeSettings');
     const modeSelect = this.el<HTMLSelectElement>('#modeSelect');
     const voiceToggle = this.el<HTMLInputElement>('#voiceToggle');
+    const fullscreenBtn = this.el<HTMLButtonElement>('#fullscreenBtn');
+    const exitHotspot = this.el<HTMLButtonElement>('#exitHotspot');
 
     modeSelect.value = this.settings.mode;
     voiceToggle.checked = this.settings.voiceEnabled;
 
-    startBtn.addEventListener('click', () => {
+    startBtn.addEventListener('click', async () => {
       this.unlocked = true;
       this.el('#startLayer').classList.add('hidden');
+      await this.enterFullscreen();
       this.nextRound();
     });
 
@@ -46,6 +53,23 @@ export class FindItApp {
     hotspot.addEventListener('pointerup', holdStop);
     hotspot.addEventListener('pointerleave', holdStop);
     hotspot.addEventListener('pointercancel', holdStop);
+
+    fullscreenBtn.addEventListener('click', async () => {
+      await this.enterFullscreen();
+    });
+
+    const exitHoldStart = () => this.beginExitHold();
+    const exitHoldStop = () => this.endExitHold();
+    exitHotspot.addEventListener('pointerdown', exitHoldStart);
+    exitHotspot.addEventListener('pointerup', exitHoldStop);
+    exitHotspot.addEventListener('pointerleave', exitHoldStop);
+    exitHotspot.addEventListener('pointercancel', exitHoldStop);
+
+    document.addEventListener('fullscreenchange', () => {
+      this.isFullscreen = Boolean(document.fullscreenElement);
+      this.syncFullscreenUi();
+    });
+    this.syncFullscreenUi();
 
     closeSettingsBtn.addEventListener('click', () => this.closeSettings());
 
@@ -92,12 +116,74 @@ export class FindItApp {
     ring.style.setProperty('--hold-progress', '0');
   }
 
+  private beginExitHold(): void {
+    const duration = 2000;
+    this.exitHoldStart = performance.now();
+    this.exitHoldTimer = window.setTimeout(async () => {
+      await this.exitFullscreen();
+      this.endExitHold();
+    }, duration);
+
+    const ring = this.el('#exitProgress');
+    ring.classList.add('show');
+
+    const tick = (time: number) => {
+      const p = Math.min((time - this.exitHoldStart) / duration, 1);
+      ring.style.setProperty('--hold-progress', `${p}`);
+      if (p < 1) this.exitHoldAnim = requestAnimationFrame(tick);
+    };
+
+    this.exitHoldAnim = requestAnimationFrame(tick);
+  }
+
+  private endExitHold(): void {
+    if (this.exitHoldTimer !== null) window.clearTimeout(this.exitHoldTimer);
+    if (this.exitHoldAnim !== null) cancelAnimationFrame(this.exitHoldAnim);
+    this.exitHoldTimer = null;
+    this.exitHoldAnim = null;
+    const ring = this.el('#exitProgress');
+    ring.classList.remove('show');
+    ring.style.setProperty('--hold-progress', '0');
+  }
+
   private openSettings(): void {
     this.el('#settingsPanel').classList.remove('hidden');
   }
 
   private closeSettings(): void {
     this.el('#settingsPanel').classList.add('hidden');
+  }
+
+  private async enterFullscreen(): Promise<void> {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      // Ignore failures (platform/browser may block fullscreen).
+    }
+    this.isFullscreen = Boolean(document.fullscreenElement);
+    this.syncFullscreenUi();
+  }
+
+  private async exitFullscreen(): Promise<void> {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Ignore failures.
+    }
+    this.isFullscreen = Boolean(document.fullscreenElement);
+    this.syncFullscreenUi();
+  }
+
+  private syncFullscreenUi(): void {
+    const fullscreenBtn = this.el<HTMLButtonElement>('#fullscreenBtn');
+    const exitHotspot = this.el<HTMLButtonElement>('#exitHotspot');
+    fullscreenBtn.classList.toggle('hidden', this.isFullscreen);
+    exitHotspot.classList.toggle('hidden', !this.isFullscreen);
+    this.el('#exitProgress').classList.toggle('show', false);
   }
 
   private nextRound(): void {
@@ -135,7 +221,7 @@ export class FindItApp {
       this.markCardFeedback(itemId, true);
       this.tts.speak(praise, { enabled: this.settings.voiceEnabled });
       // Leave a natural pause before starting the next prompt.
-      window.setTimeout(() => this.nextRound(), 1200);
+      window.setTimeout(() => this.nextRound(), 1700);
       return;
     }
 

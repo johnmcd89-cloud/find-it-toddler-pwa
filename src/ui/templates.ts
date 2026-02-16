@@ -3,6 +3,10 @@ export const appTemplate = `
     <button class="parent-hotspot" aria-label="Open parent settings"></button>
     <div class="parent-progress" aria-hidden="true"><span class="ring"></span></div>
 
+    <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Enter full screen">Full screen</button>
+    <button class="exit-hotspot" id="exitHotspot" aria-label="Exit full screen (hold)"></button>
+    <div class="exit-progress" id="exitProgress" aria-hidden="true"><span class="ring"></span></div>
+
     <section class="top-bar">
       <div class="title">Find It!</div>
       <div class="status" id="statusText">Tap start to begin</div>
