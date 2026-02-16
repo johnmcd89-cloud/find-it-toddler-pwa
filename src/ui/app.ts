@@ -271,6 +271,15 @@ export class FindItApp {
     card.classList.remove('correct', 'incorrect');
     card.classList.add(isCorrect ? 'correct' : 'incorrect');
 
+    if (isCorrect) {
+      const board = this.el('#board');
+      board.classList.remove('celebrate');
+      // restart animation reliably
+      void board.offsetWidth;
+      board.classList.add('celebrate');
+      window.setTimeout(() => board.classList.remove('celebrate'), 900);
+    }
+
     window.setTimeout(() => {
       card.classList.remove('correct', 'incorrect');
     }, 500);
