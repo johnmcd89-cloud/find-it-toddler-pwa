@@ -76,10 +76,26 @@ body {
   75% { transform: translateX(4px); }
 }
 
+@keyframes auraFade {
+  0% { opacity: 0.95; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
 .card.correct {
+  position: relative;
   box-shadow: 0 0 0 6px rgb(54 179 126 / 0.5), 0 10px 30px rgb(54 179 126 / 0.34);
   transform: scale(1.01);
   animation: correctPulse 560ms ease-out, correctGlow 700ms ease-out;
+}
+.card.correct::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 26px;
+  border: 3px solid rgb(54 179 126 / 0.45);
+  box-shadow: 0 0 18px rgb(54 179 126 / 0.35);
+  animation: auraFade 700ms ease-out;
+  pointer-events: none;
 }
 .card.correct .emoji {
   animation: emojiBounce 620ms ease-out;

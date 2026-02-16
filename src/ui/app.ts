@@ -230,8 +230,8 @@ export class FindItApp {
         navigator.vibrate(20);
       }
       this.tts.speak(confirm, { enabled: this.settings.voiceEnabled });
-      // Leave a natural pause before starting the next prompt.
-      window.setTimeout(() => this.nextRound(), 2100);
+      // Leave a longer pause so praise fully finishes before next prompt.
+      window.setTimeout(() => this.nextRound(), 3200);
       return;
     }
 

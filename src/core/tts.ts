@@ -47,9 +47,9 @@ export class ToddlerTTS {
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    // Slower, calmer toddler-friendly defaults.
-    utterance.rate = 0.8;
-    utterance.pitch = 1.0;
+    // Extra-slow, calmer toddler-friendly defaults.
+    utterance.rate = 0.7;
+    utterance.pitch = 0.95;
     utterance.lang = 'en-US';
     if (this.voice) utterance.voice = this.voice;
     window.speechSynthesis.speak(utterance);
