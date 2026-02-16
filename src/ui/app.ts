@@ -7,6 +7,7 @@ export class FindItApp {
   private root: HTMLElement;
   private items: Item[];
   private tts = new ToddlerTTS();
+  private readonly promptTemplates = ['Find the {item}.', 'Where is the {item}?', 'Tap the {item}.'];
   private settings: Settings = loadSettings();
   private round: Round | null = null;
   private lastTargetId: string | undefined;
@@ -133,14 +134,20 @@ export class FindItApp {
       return;
     }
 
-    statusText.textContent = `Try again. Find ${this.round.target.label}.`;
-    this.tts.speak(`Try again. Find ${this.round.target.label}.`, { enabled: this.settings.voiceEnabled });
+    const retryPrompt = this.makePrompt(this.round.target.label);
+    statusText.textContent = `Try again. ${retryPrompt}`;
+    this.tts.speak(`Try again. ${retryPrompt}`, { enabled: this.settings.voiceEnabled });
     this.resetInactivityTimer();
+  }
+
+  private makePrompt(itemLabel: string): string {
+    const template = this.promptTemplates[Math.floor(Math.random() * this.promptTemplates.length)] ?? 'Find the {item}.';
+    return template.replace('{item}', itemLabel);
   }
 
   private announcePrompt(): void {
     if (!this.round) return;
-    const prompt = `Find the ${this.round.target.label}.`;
+    const prompt = this.makePrompt(this.round.target.label);
     this.el('#statusText').textContent = prompt;
     this.tts.speak(prompt, { enabled: this.settings.voiceEnabled });
   }
