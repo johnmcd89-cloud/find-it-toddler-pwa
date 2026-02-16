@@ -13,14 +13,24 @@ export class ToddlerTTS {
 
     const selectVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      // Prefer calmer, more natural-sounding English voices when available.
-      this.voice =
-        voices.find((v) => /samantha|karen|moira|ava|allison|google us english/i.test(v.name)) ??
-        voices.find((v) => /female/i.test(v.name) && /en-/i.test(v.lang)) ??
-        voices.find((v) => /en-us/i.test(v.lang)) ??
-        voices.find((v) => /en-/i.test(v.lang)) ??
-        voices[0] ??
-        null;
+
+      // Prefer higher-quality built-in voices first (natural/neural/enhanced), then calmer English voices.
+      const preferred = [
+        /natural|neural|enhanced|premium/i,
+        /samantha|karen|moira|ava|allison|zira|aria/i,
+        /female/i
+      ];
+
+      const englishVoices = voices.filter((v) => /en-/i.test(v.lang) || /english/i.test(v.name));
+      const pool = englishVoices.length > 0 ? englishVoices : voices;
+
+      let picked: SpeechSynthesisVoice | null = null;
+      for (const pattern of preferred) {
+        picked = pool.find((v) => pattern.test(v.name)) ?? null;
+        if (picked) break;
+      }
+
+      this.voice = picked ?? pool.find((v) => /en-us/i.test(v.lang)) ?? pool[0] ?? null;
     };
 
     selectVoice();

@@ -25,10 +25,11 @@ export const buildRound = (items: Item[], mode: GameMode, previousTargetId?: str
 
   const target = nextTarget(items, previousTargetId);
 
-  const distractorPool =
-    mode === 'easy'
-      ? items.filter((i) => i.id !== target.id)
-      : shuffle(items.filter((i) => i.id !== target.id));
+  // Current content pack doesn't include category metadata yet; keep mode in signature for compatibility.
+  void mode;
+
+  // Always shuffle distractors so one item (e.g. apple) doesn't appear repeatedly.
+  const distractorPool = shuffle(items.filter((i) => i.id !== target.id));
 
   const distractor = distractorPool[0];
   const cards = shuffle([
