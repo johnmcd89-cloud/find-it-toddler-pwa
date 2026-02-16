@@ -277,7 +277,7 @@ export class FindItApp {
       // restart animation reliably
       void board.offsetWidth;
       board.classList.add('celebrate');
-      window.setTimeout(() => board.classList.remove('celebrate'), 900);
+      window.setTimeout(() => board.classList.remove('celebrate'), 1300);
     }
 
     window.setTimeout(() => {
