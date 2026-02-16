@@ -8,6 +8,7 @@ export class FindItApp {
   private items: Item[];
   private tts = new ToddlerTTS();
   private readonly promptTemplates = ['Find the {item}.', 'Where is the {item}?', 'Tap the {item}.'];
+  private readonly correctPhrases = ['Great!', 'Good job!', "That\'s right!", 'Nice work!'];
   private settings: Settings = loadSettings();
   private round: Round | null = null;
   private lastTargetId: string | undefined;
@@ -117,6 +118,7 @@ export class FindItApp {
     this.round.cards.forEach((card) => {
       const btn = document.createElement('button');
       btn.className = 'card';
+      btn.dataset.itemId = card.item.id;
       btn.innerHTML = `<span class="emoji">${card.item.emoji}</span><span class="label">${card.item.label}</span>`;
       btn.addEventListener('click', () => this.handleGuess(card.item.id));
       board.appendChild(btn);
@@ -128,14 +130,18 @@ export class FindItApp {
     const statusText = this.el('#statusText');
 
     if (itemId === this.round.target.id) {
-      statusText.textContent = 'Great job!';
-      this.tts.speak('Great job!', { enabled: this.settings.voiceEnabled });
-      window.setTimeout(() => this.nextRound(), 400);
+      const praise = this.correctPhrases[Math.floor(Math.random() * this.correctPhrases.length)] ?? 'Great!';
+      statusText.textContent = praise;
+      this.markCardFeedback(itemId, true);
+      this.tts.speak(praise, { enabled: this.settings.voiceEnabled });
+      // Leave a natural pause before starting the next prompt.
+      window.setTimeout(() => this.nextRound(), 1200);
       return;
     }
 
     const retryPrompt = this.makePrompt(this.round.target.label);
     statusText.textContent = `Try again. ${retryPrompt}`;
+    this.markCardFeedback(itemId, false);
     this.tts.speak(`Try again. ${retryPrompt}`, { enabled: this.settings.voiceEnabled });
     this.resetInactivityTimer();
   }
@@ -159,6 +165,19 @@ export class FindItApp {
       this.announcePrompt();
       this.resetInactivityTimer();
     }, this.settings.inactivityMs);
+  }
+
+  private markCardFeedback(itemId: string, isCorrect: boolean): void {
+    const board = this.el('#board');
+    const card = board.querySelector<HTMLButtonElement>(`.card[data-item-id="${itemId}"]`);
+    if (!card) return;
+
+    card.classList.remove('correct', 'incorrect');
+    card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    window.setTimeout(() => {
+      card.classList.remove('correct', 'incorrect');
+    }, 500);
   }
 
   private el<T extends HTMLElement = HTMLElement>(selector: string): T {

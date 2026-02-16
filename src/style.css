@@ -50,6 +50,13 @@ body {
   cursor: pointer;
 }
 .card:active { transform: scale(0.98); }
+.card.correct {
+  box-shadow: 0 0 0 4px rgb(54 179 126 / 0.35), 0 8px 24px rgb(54 179 126 / 0.28);
+  transform: scale(1.01);
+}
+.card.incorrect {
+  box-shadow: 0 0 0 4px rgb(255 99 71 / 0.32), 0 8px 24px rgb(255 99 71 / 0.2);
+}
 .emoji { font-size: clamp(4rem, 8vw, 7rem); }
 .label { font-size: clamp(1.1rem, 2.4vw, 1.5rem); text-transform: capitalize; }
 
@@ -139,5 +146,7 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .card:active { transform: none; }
+  .card:active,
+  .card.correct,
+  .card.incorrect { transform: none; }
 }
