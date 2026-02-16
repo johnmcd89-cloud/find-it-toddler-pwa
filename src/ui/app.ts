@@ -8,7 +8,13 @@ export class FindItApp {
   private items: Item[];
   private tts = new ToddlerTTS();
   private readonly promptTemplates = ['Find the {item}.', 'Where is the {item}?', 'Tap the {item}.'];
-  private readonly correctPhrases = ['Great!', 'Good job!', "That\'s right!", 'Nice work!'];
+  private readonly correctPhrases = [
+    'Great job!',
+    "That\'s right!",
+    'You found it!',
+    'Nice work!',
+    'Yes! You did it!'
+  ];
   private settings: Settings = loadSettings();
   private round: Round | null = null;
   private lastTargetId: string | undefined;
@@ -216,12 +222,16 @@ export class FindItApp {
     const statusText = this.el('#statusText');
 
     if (itemId === this.round.target.id) {
-      const praise = this.correctPhrases[Math.floor(Math.random() * this.correctPhrases.length)] ?? 'Great!';
-      statusText.textContent = praise;
+      const praise = this.correctPhrases[Math.floor(Math.random() * this.correctPhrases.length)] ?? 'Great job!';
+      const confirm = `${praise} That is the ${this.round.target.label}.`;
+      statusText.textContent = confirm;
       this.markCardFeedback(itemId, true);
-      this.tts.speak(praise, { enabled: this.settings.voiceEnabled });
+      if ('vibrate' in navigator) {
+        navigator.vibrate(20);
+      }
+      this.tts.speak(confirm, { enabled: this.settings.voiceEnabled });
       // Leave a natural pause before starting the next prompt.
-      window.setTimeout(() => this.nextRound(), 1700);
+      window.setTimeout(() => this.nextRound(), 2100);
       return;
     }
 
